@@ -6,6 +6,7 @@ import bcrypt from "bcrypt";
 
 export const { auth, handlers, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
+  session: { strategy: "jwt" },
   providers: [
     Credentials({
       credentials: {
@@ -24,7 +25,7 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
         if (!user) throw new Error("User not found");
 
         // Check password
-        const isValid = bcrypt.compare(
+        const isValid = await bcrypt.compare(
           credentials.password as string,
           user.password
         );
@@ -38,7 +39,14 @@ export const { auth, handlers, signIn, signOut } = NextAuth({
       },
     }),
   ],
-  pages: {
-    signIn: "/signin",
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) token.id = user.id;
+      return token;
+    },
+    async session({ session, token }) {
+      if (token) session.user.id = token.id as string;
+      return session;
+    },
   },
 });
