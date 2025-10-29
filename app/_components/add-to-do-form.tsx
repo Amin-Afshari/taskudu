@@ -41,7 +41,17 @@ export default function AddToDoForm() {
     }
   );
   return (
-    <form className="flex flex-1 w-full" onSubmit={handleSubmitWithAction}>
+    <form
+      className="flex flex-1 w-full"
+      onSubmit={(e) => {
+        // prevent re-submit while executing
+        if (action.isExecuting) {
+          e.preventDefault();
+          return;
+        }
+        handleSubmitWithAction(e);
+      }}
+    >
       <FieldGroup>
         <Controller
           name="title"
